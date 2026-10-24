@@ -393,7 +393,7 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
             }}
             onClick={() => {
               if (onSelectCategory && summary.insights.overBudgetCategories.length > 0) {
-                onSelectCategory(summary.insights.overBudgetCategories[0]);
+                onSelectCategory(summary.insights.overBudgetCategories[0].category);
               }
             }}
             title={summary.insights.overBudgetCategories.length > 0 ? `Click to inspect over-budget category` : undefined}

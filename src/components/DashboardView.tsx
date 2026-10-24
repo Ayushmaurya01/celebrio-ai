@@ -254,7 +254,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div 
           className="glass-card" 
           style={{ padding: '1.25rem 1.4rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
-          onClick={() => onNavigate('checklist')}
+          onClick={() => onNavigate('vendors')}
           title="Click to view Vendor & Deliverables Checklist"
           role="button"
           tabIndex={0}
