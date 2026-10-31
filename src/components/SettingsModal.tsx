@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AppSettings } from '../types';
 import { 
   X, 
@@ -6,10 +6,8 @@ import {
   Cpu, 
   RotateCcw, 
   Check, 
-  AlertCircle, 
   ShieldCheck, 
-  Sparkles,
-  Info
+  Sparkles
 } from 'lucide-react';
 
 interface SettingsModalProps {

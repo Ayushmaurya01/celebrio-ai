@@ -17,7 +17,7 @@ export async function generateAIEventPlan(
     try {
       const plan = await callGeminiForPlan(event, apiKey, options?.model || 'gemini-2.5-flash');
       return plan;
-    } catch (err) {
+    } catch (err: unknown) {
       console.warn('Gemini API call failed, falling back to deterministic offline planner:', err);
       // Fallback with explicit offline label
       return generateDeterministicPlan(event, 'Fallback from live API failure');
@@ -40,7 +40,7 @@ export async function sendChatMessageToPlanner(
   if (isLive) {
     try {
       return await callGeminiForChat(userQuery, event, chatHistory, apiKey, options?.model || 'gemini-2.5-flash');
-    } catch (err) {
+    } catch (err: unknown) {
       console.warn('Gemini chat failed, falling back to deterministic planner:', err);
       return generateDeterministicChatReply(userQuery, event, true);
     }
@@ -243,7 +243,7 @@ export function generateDeterministicPlan(event: EventPlan, note?: string): AIPl
 export function generateDeterministicChatReply(
   userQuery: string,
   event: EventPlan,
-  isFallback: boolean
+  _isFallback: boolean = false
 ): ChatMessage {
   const query = userQuery.toLowerCase();
   let text = '';

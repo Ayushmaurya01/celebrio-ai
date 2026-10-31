@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { EventPlan, EventType } from '../types';
+import { useState, useEffect } from 'react';
+import { EventPlan, EventType, VenueType, EventFormality } from '../types';
 import { validateEventForm } from '../services/validationService';
 import { generateInitialBudgetItems } from '../services/budgetService';
 import { generateInitialMilestones } from '../services/timelineService';
@@ -7,15 +7,7 @@ import { generateInitialVendorTasks } from '../services/vendorTaskService';
 import { generateDeterministicPlan } from '../services/aiPlannerService';
 import { 
   X, 
-  Sparkles, 
-  Calendar, 
-  DollarSign, 
-  Users, 
-  MapPin, 
-  Tag, 
-  Palette, 
-  Music, 
-  Utensils 
+  Sparkles
 } from 'lucide-react';
 
 interface EventCreationModalProps {
@@ -281,7 +273,7 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
                   id="ev-venuetype"
                   className="form-select"
                   value={formData.venueType}
-                  onChange={(e) => setFormData({ ...formData, venueType: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, venueType: e.target.value as VenueType })}
                 >
                   <option value="indoor">Indoor</option>
                   <option value="outdoor">Outdoor</option>
@@ -361,7 +353,7 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
                     value={formData.preferences?.formality}
                     onChange={(e) => setFormData({
                       ...formData,
-                      preferences: { ...formData.preferences, formality: e.target.value as any }
+                      preferences: { ...formData.preferences, formality: e.target.value as EventFormality }
                     })}
                   >
                     <option value="casual">Casual / Relaxed</option>

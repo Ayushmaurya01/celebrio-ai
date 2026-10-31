@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone, BudgetCategory } from '../types';
+import { useState } from 'react';
+import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone, BudgetCategory, SuggestedAction } from '../types';
 import { generateAIEventPlan, sendChatMessageToPlanner } from '../services/aiPlannerService';
 import { 
   Sparkles, 
@@ -13,7 +13,6 @@ import {
   Bot, 
   User, 
   PlusCircle, 
-  Info,
   Check
 } from 'lucide-react';
 
@@ -66,8 +65,9 @@ export const AIPlannerView: React.FC<AIPlannerViewProps> = ({
           : 'Deterministic event plan refreshed!',
         'success'
       );
-    } catch (err: any) {
-      showToast(`Plan generation failed: ${err.message || 'Unknown error'}`, 'warning');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      showToast(`Plan generation failed: ${errorMsg}`, 'warning');
     } finally {
       setIsGeneratingPlan(false);
     }
@@ -111,14 +111,15 @@ export const AIPlannerView: React.FC<AIPlannerViewProps> = ({
         chatHistory: [...newHistory, assistantMsg],
         updatedAt: new Date().toISOString(),
       });
-    } catch (err: any) {
-      showToast(`Assistant error: ${err.message || 'Failed to reply'}`, 'warning');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to reply';
+      showToast(`Assistant error: ${errorMsg}`, 'warning');
     } finally {
       setIsSendingMessage(false);
     }
   };
 
-  const executeAction = (action: any, actionKey: string) => {
+  const executeAction = (action: SuggestedAction, actionKey: string) => {
     setAppliedActions((prev) => ({ ...prev, [actionKey]: true }));
     if (action.actionType === 'add_expense') {
       onAddBudgetItem({
@@ -152,6 +153,14 @@ export const AIPlannerView: React.FC<AIPlannerViewProps> = ({
         isDayOfAgenda: false,
       });
       showToast(`Added "${action.payload.title}" to event timeline!`, 'success');
+    } else if (action.actionType === 'refine_theme') {
+      if (action.payload.themeKeywords) {
+        onUpdateEvent({
+          ...activeEvent,
+          themeKeywords: action.payload.themeKeywords,
+        });
+        showToast(`Updated theme: ${action.payload.themeKeywords}`, 'success');
+      }
     }
   };
 

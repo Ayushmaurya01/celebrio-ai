@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BudgetSummary, CategorySummary } from '../services/budgetService';
+import { useState } from 'react';
+import { BudgetSummary } from '../services/budgetService';
 import { BudgetCategory } from '../types';
 import { 
   PieChart as PieChartIcon, 
@@ -7,8 +7,6 @@ import {
   AlertTriangle, 
   Sparkles, 
   ShieldCheck, 
-  DollarSign, 
-  Info,
   CheckCircle2,
   ArrowUpRight
 } from 'lucide-react';

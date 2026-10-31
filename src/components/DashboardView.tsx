@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { EventPlan } from '../types';
 import { calculateBudgetSummary } from '../services/budgetService';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
@@ -10,14 +10,12 @@ import {
   Calendar, 
   Users, 
   Wallet, 
-  CheckCircle2, 
   AlertTriangle, 
   ArrowRight, 
   TrendingUp, 
   Clock, 
   Sparkle,
   Utensils,
-  Music,
   Receipt,
   Check
 } from 'lucide-react';

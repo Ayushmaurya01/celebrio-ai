@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone } from './types';
+import { useState, useEffect } from 'react';
+import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone, MilestoneStatus } from './types';
 import { 
   loadAllEvents, 
   saveAllEvents, 
@@ -207,11 +207,11 @@ export function App() {
 
   const handleToggleMilestoneStatus = (milestoneId: string) => {
     if (!activeEvent) return;
-    const updated = activeEvent.timeline.map((m) =>
-      m.id === milestoneId
-        ? { ...m, status: (m.status === 'completed' ? 'pending' : 'completed') as any }
-        : m
-    );
+    const updated = activeEvent.timeline.map((m) => {
+      if (m.id !== milestoneId) return m;
+      const nextStatus: MilestoneStatus = m.status === 'completed' ? 'pending' : 'completed';
+      return { ...m, status: nextStatus };
+    });
     handleUpdateActiveEvent({
       ...activeEvent,
       timeline: updated,

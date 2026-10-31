@@ -17,6 +17,8 @@ export type BudgetCategory =
   | 'invitations' 
   | 'miscellaneous';
 
+export type PaidStatus = 'unpaid' | 'deposit_paid' | 'paid_in_full';
+
 export interface BudgetItem {
   id: string;
   category: BudgetCategory;
@@ -25,16 +27,17 @@ export interface BudgetItem {
   actualCost?: number;
   isEstimate: boolean;
   notes?: string;
-  paidStatus: 'unpaid' | 'deposit_paid' | 'paid_in_full';
+  paidStatus: PaidStatus;
 }
 
 export type MilestoneStatus = 'pending' | 'in_progress' | 'completed';
+export type MilestoneCategory = 'venue' | 'vendors' | 'invitations' | 'logistics' | 'decor' | 'general' | 'day_of';
 
 export interface TimelineMilestone {
   id: string;
   title: string;
   description: string;
-  category: 'venue' | 'vendors' | 'invitations' | 'logistics' | 'decor' | 'general' | 'day_of';
+  category: MilestoneCategory;
   targetDate: string; // YYYY-MM-DD
   time?: string; // HH:mm for day-of agenda
   status: MilestoneStatus;
@@ -42,6 +45,7 @@ export interface TimelineMilestone {
 }
 
 export type VendorBookingStatus = 'inquiry' | 'quote_received' | 'booked' | 'deposit_paid' | 'completed' | 'cancelled';
+export type VendorTaskPriority = 'low' | 'medium' | 'high';
 
 export interface VendorTask {
   id: string;
@@ -55,7 +59,7 @@ export interface VendorTask {
   bookingStatus: VendorBookingStatus;
   estimatedCost: number;
   dueDate: string; // YYYY-MM-DD
-  priority: 'low' | 'medium' | 'high';
+  priority: VendorTaskPriority;
   completed: boolean;
 }
 
@@ -83,18 +87,73 @@ export interface AIPlan {
   suggestedBudgetBreakdown: Record<BudgetCategory, number>; // percentages summing to 100
 }
 
+export interface AddExpensePayload {
+  name: string;
+  category?: BudgetCategory;
+  estimatedCost?: number;
+  notes?: string;
+}
+
+export interface AddTaskPayload {
+  title: string;
+  category?: BudgetCategory;
+  estimatedCost?: number;
+  priority?: VendorTaskPriority;
+  notes?: string;
+}
+
+export interface AddMilestonePayload {
+  title: string;
+  description?: string;
+  category?: MilestoneCategory;
+}
+
+export interface RefineThemePayload {
+  themeKeywords?: string;
+  notes?: string;
+}
+
+export interface SuggestedAddExpenseAction {
+  label: string;
+  actionType: 'add_expense';
+  payload: AddExpensePayload;
+}
+
+export interface SuggestedAddTaskAction {
+  label: string;
+  actionType: 'add_task';
+  payload: AddTaskPayload;
+}
+
+export interface SuggestedAddMilestoneAction {
+  label: string;
+  actionType: 'add_milestone';
+  payload: AddMilestonePayload;
+}
+
+export interface SuggestedRefineThemeAction {
+  label: string;
+  actionType: 'refine_theme';
+  payload: RefineThemePayload;
+}
+
+export type SuggestedAction =
+  | SuggestedAddExpenseAction
+  | SuggestedAddTaskAction
+  | SuggestedAddMilestoneAction
+  | SuggestedRefineThemeAction;
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   timestamp: string;
   text: string;
   isLiveAI: boolean;
-  suggestedActions?: {
-    label: string;
-    actionType: 'add_expense' | 'add_task' | 'add_milestone' | 'refine_theme';
-    payload: any;
-  }[];
+  suggestedActions?: SuggestedAction[];
 }
+
+export type VenueType = 'indoor' | 'outdoor' | 'hybrid' | 'destination';
+export type EventFormality = 'casual' | 'semi-formal' | 'black-tie' | 'traditional';
 
 export interface EventPlan {
   id: string;
@@ -103,12 +162,12 @@ export interface EventPlan {
   date: string; // YYYY-MM-DD
   time?: string; // HH:mm
   location: string;
-  venueType?: 'indoor' | 'outdoor' | 'hybrid' | 'destination';
+  venueType?: VenueType;
   guestCount: number;
   totalBudget: number;
   themeKeywords: string;
   preferences: {
-    formality?: 'casual' | 'semi-formal' | 'black-tie' | 'traditional';
+    formality?: EventFormality;
     colorScheme?: string;
     dietaryNotes?: string;
     musicPreference?: string;

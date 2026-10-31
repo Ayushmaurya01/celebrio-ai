@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { EventPlan, TimelineMilestone, MilestoneStatus } from '../types';
+import { useState } from 'react';
+import { EventPlan, TimelineMilestone, MilestoneStatus, MilestoneCategory } from '../types';
 import { 
   isMilestoneOverdue, 
   sortMilestonesChronologically, 
@@ -19,8 +19,7 @@ import {
   Edit3, 
   Trash2, 
   X,
-  Calendar,
-  AlertCircle
+  Calendar
 } from 'lucide-react';
 
 interface TimelineViewProps {
@@ -301,7 +300,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
-            {displayedMilestones.map((m, index) => {
+            {displayedMilestones.map((m) => {
               const overdue = isMilestoneOverdue(m);
               const hasSequenceIssue = sequenceIssues.some((issue) => issue.milestoneId === m.id);
 
@@ -485,7 +484,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                       id="m-cat"
                       className="form-select"
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value as MilestoneCategory })}
                     >
                       <option value="venue">Venue</option>
                       <option value="vendors">Vendors</option>
@@ -503,7 +502,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                       id="m-status"
                       className="form-select"
                       value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as MilestoneStatus })}
                     >
                       <option value="pending">Pending</option>
                       <option value="in_progress">In Progress</option>

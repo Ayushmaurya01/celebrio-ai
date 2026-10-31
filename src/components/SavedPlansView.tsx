@@ -1,23 +1,18 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { EventPlan } from '../types';
 import { calculateBudgetSummary } from '../services/budgetService';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
 import { exportPlanAsJSON } from '../services/storageService';
 import { 
-  FolderHeart, 
   Plus, 
   Download, 
   Upload, 
   Copy, 
   Trash2, 
-  CheckCircle, 
   MapPin, 
   Calendar, 
   Users, 
-  Wallet, 
-  ArrowRight,
-  Sparkles,
-  Printer
+  ArrowRight
 } from 'lucide-react';
 
 interface SavedPlansViewProps {
@@ -68,8 +63,9 @@ export const SavedPlansView: React.FC<SavedPlansViewProps> = ({
 
         onImportEvent(imported);
         showToast(`Successfully imported "${imported.name}"!`, 'success');
-      } catch (err) {
-        showToast('Failed to parse JSON file.', 'warning');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? `Failed to parse JSON file: ${err.message}` : 'Failed to parse JSON file.';
+        showToast(message, 'warning');
       }
     };
     reader.readAsText(file);

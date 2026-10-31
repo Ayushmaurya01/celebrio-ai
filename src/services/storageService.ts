@@ -18,7 +18,7 @@ export function loadSettings(): AppSettings {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!raw) return DEFAULT_SETTINGS;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to load settings from localStorage:', e);
     return DEFAULT_SETTINGS;
   }
@@ -27,7 +27,7 @@ export function loadSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to save settings:', e);
   }
 }
@@ -48,7 +48,7 @@ export function loadAllEvents(): EventPlan[] {
       return samples;
     }
     return parsed;
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to load events from storage, restoring samples:', e);
     const samples = getSampleEvents();
     saveAllEvents(samples);
@@ -59,7 +59,7 @@ export function loadAllEvents(): EventPlan[] {
 export function saveAllEvents(events: EventPlan[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to save events to localStorage:', e);
   }
 }
@@ -75,7 +75,7 @@ export function loadActiveEventId(): string {
 export function saveActiveEventId(id: string): void {
   try {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_EVENT_ID, id);
-  } catch (e) {
+  } catch (e: unknown) {
     console.error('Failed to save active event id:', e);
   }
 }

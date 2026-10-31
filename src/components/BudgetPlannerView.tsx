@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { EventPlan, BudgetItem, BudgetCategory } from '../types';
+import { useState } from 'react';
+import { EventPlan, BudgetItem, BudgetCategory, PaidStatus } from '../types';
 import { 
   calculateBudgetSummary, 
   BUDGET_CATEGORY_METADATA 
@@ -11,14 +11,9 @@ import {
   AlertTriangle, 
   Edit3, 
   Trash2, 
-  Filter, 
   DollarSign, 
-  Tag, 
-  Check, 
   X,
-  PieChart,
   Search,
-  CheckCircle2,
   Receipt
 } from 'lucide-react';
 
@@ -580,7 +575,7 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
                       id="expense-status"
                       className="form-select"
                       value={formData.paidStatus}
-                      onChange={(e) => setFormData({ ...formData, paidStatus: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, paidStatus: e.target.value as PaidStatus })}
                     >
                       <option value="unpaid">Unpaid</option>
                       <option value="deposit_paid">Deposit Paid</option>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { EventPlan, VendorTask, BudgetCategory, VendorBookingStatus } from '../types';
+import { useState } from 'react';
+import { EventPlan, VendorTask, BudgetCategory, VendorBookingStatus, VendorTaskPriority } from '../types';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
 import { BUDGET_CATEGORY_METADATA } from '../services/budgetService';
 import confetti from 'canvas-confetti';
@@ -7,16 +7,13 @@ import {
   CheckSquare, 
   Plus, 
   Search, 
-  Filter, 
   Phone, 
   Mail, 
-  DollarSign, 
   CheckCircle2, 
   Circle, 
   Edit3, 
   Trash2, 
   X,
-  Sparkles,
   Building2,
   Calendar
 } from 'lucide-react';
@@ -310,7 +307,7 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
             <select
               className="form-select"
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as any)}
+              onChange={(e) => setCategoryFilter(e.target.value as BudgetCategory | 'all')}
               style={{ fontSize: '0.85rem', padding: '0.5rem 0.85rem', width: 'auto' }}
               aria-label="Filter by category"
             >
@@ -560,7 +557,7 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
                       id="task-priority"
                       className="form-select"
                       value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as VendorTaskPriority })}
                     >
                       <option value="low">Low Priority</option>
                       <option value="medium">Medium Priority</option>
