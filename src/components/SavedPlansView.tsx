@@ -1,8 +1,10 @@
-import { useRef } from 'react';
-import { EventPlan } from '../types';
+import { useRef, useMemo } from 'react';
+import { EventPlan, BudgetSummary, VendorTaskProgress } from '../types';
 import { calculateBudgetSummary } from '../services/budgetService';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
 import { exportPlanAsJSON } from '../services/storageService';
+import { formatEventDate } from '../utils/dateUtils';
+import { generateId } from '../utils/idUtils';
 import { 
   Plus, 
   Download, 
@@ -40,6 +42,17 @@ export const SavedPlansView: React.FC<SavedPlansViewProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const eventSummaries = useMemo(() => {
+    const map = new Map<string, { budgetSummary: BudgetSummary; taskProgress: VendorTaskProgress }>();
+    allEvents.forEach((event) => {
+      map.set(event.id, {
+        budgetSummary: calculateBudgetSummary(event.totalBudget, event.budgetItems),
+        taskProgress: calculateVendorTaskProgress(event.vendorTasks),
+      });
+    });
+    return map;
+  }, [allEvents]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -55,7 +68,7 @@ export const SavedPlansView: React.FC<SavedPlansViewProps> = ({
 
         const imported: EventPlan = {
           ...parsed,
-          id: 'event-imp-' + Date.now(),
+          id: generateId('event-imp'),
           name: `${parsed.name} (Imported)`,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -126,8 +139,9 @@ export const SavedPlansView: React.FC<SavedPlansViewProps> = ({
       }}>
         {allEvents.map((event) => {
           const isActive = event.id === activeEventId;
-          const budgetSummary = calculateBudgetSummary(event.totalBudget, event.budgetItems);
-          const taskProgress = calculateVendorTaskProgress(event.vendorTasks);
+          const summary = eventSummaries.get(event.id);
+          const budgetSummary = summary?.budgetSummary ?? calculateBudgetSummary(event.totalBudget, event.budgetItems);
+          const taskProgress = summary?.taskProgress ?? calculateVendorTaskProgress(event.vendorTasks);
 
           return (
             <div 
@@ -174,7 +188,7 @@ export const SavedPlansView: React.FC<SavedPlansViewProps> = ({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.85rem 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Calendar size={14} color="var(--gold-500)" />
-                    <span>{new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} {event.time && `• ${event.time}`}</span>
+                    <span>{formatEventDate(event.date)} {event.time && `• ${event.time}`}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <MapPin size={14} color="var(--primary-500)" />

@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { EventPlan, VendorTask, BudgetCategory, VendorBookingStatus, VendorTaskPriority } from '../types';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
 import { BUDGET_CATEGORY_METADATA } from '../services/budgetService';
+import { generateId } from '../utils/idUtils';
+import { getDaysUntilEvent } from '../utils/dateUtils';
+import { CategorySelect } from './CategorySelect';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import confetti from 'canvas-confetti';
 import { 
   CheckSquare, 
@@ -35,6 +39,8 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<VendorTask | null>(null);
 
+  useModalAccessibility(isModalOpen, () => setIsModalOpen(false));
+
   // Form state
   const [formData, setFormData] = useState<{
     title: string;
@@ -66,7 +72,10 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
 
   const [formErrors, setFormErrors] = useState<{ title?: string; dueDate?: string }>({});
 
-  const taskMetrics = calculateVendorTaskProgress(activeEvent.vendorTasks);
+  const taskMetrics = useMemo(
+    () => calculateVendorTaskProgress(activeEvent.vendorTasks),
+    [activeEvent.vendorTasks]
+  );
 
   const openAddModal = () => {
     setEditingTask(null);
@@ -183,7 +192,7 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
       showToast(`Updated task "${formData.title}"`, 'success');
     } else {
       const newTask: VendorTask = {
-        id: 'vt-' + Date.now(),
+        id: generateId('vt'),
         title: formData.title.trim(),
         category: formData.category,
         vendorName: formData.vendorName.trim() || undefined,
@@ -223,19 +232,21 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
   };
 
   // Filtering
-  const filteredTasks = activeEvent.vendorTasks.filter((t) => {
-    if (statusFilter === 'pending' && t.completed) return false;
-    if (statusFilter === 'completed' && !t.completed) return false;
-    if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchTitle = t.title.toLowerCase().includes(query);
-      const matchVendor = t.vendorName?.toLowerCase().includes(query);
-      const matchNotes = t.notes?.toLowerCase().includes(query);
-      return matchTitle || matchVendor || matchNotes;
-    }
-    return true;
-  });
+  const filteredTasks = useMemo(() => {
+    return activeEvent.vendorTasks.filter((t) => {
+      if (statusFilter === 'pending' && t.completed) return false;
+      if (statusFilter === 'completed' && !t.completed) return false;
+      if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchTitle = t.title.toLowerCase().includes(query);
+        const matchVendor = t.vendorName?.toLowerCase().includes(query);
+        const matchNotes = t.notes?.toLowerCase().includes(query);
+        return matchTitle || matchVendor || matchNotes;
+      }
+      return true;
+    });
+  }, [activeEvent.vendorTasks, statusFilter, categoryFilter, searchQuery]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -304,18 +315,14 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
 
           {/* Filter buttons */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <select
-              className="form-select"
+            <CategorySelect
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as BudgetCategory | 'all')}
+              onChange={(cat) => setCategoryFilter(cat)}
+              includeAllOption={true}
+              allOptionLabel="All Categories"
               style={{ fontSize: '0.85rem', padding: '0.5rem 0.85rem', width: 'auto' }}
               aria-label="Filter by category"
-            >
-              <option value="all">All Categories</option>
-              {Object.entries(BUDGET_CATEGORY_METADATA).map(([catKey, meta]) => (
-                <option key={catKey} value={catKey}>{meta.label}</option>
-              ))}
-            </select>
+            />
 
             <div style={{ display: 'flex', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-medium)' }}>
               <button
@@ -357,7 +364,8 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.25rem' }}>
             {filteredTasks.map((t) => {
-              const isOverdue = !t.completed && new Date(t.dueDate + 'T00:00:00') < new Date();
+              const daysUntil = getDaysUntilEvent(t.dueDate);
+              const isOverdue = !t.completed && daysUntil !== null && daysUntil < 0;
 
               return (
                 <div 
@@ -511,7 +519,13 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
       {/* Add / Edit Task Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-labelledby="modal-task-title">
+          <div 
+            className="modal-card" 
+            onClick={(e) => e.stopPropagation()} 
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby="modal-task-title"
+          >
             <div className="modal-header">
               <h2 id="modal-task-title" style={{ fontSize: '1.25rem' }}>
                 {editingTask ? 'Edit Vendor / Task' : 'Add New Vendor Deliverable'}
@@ -539,16 +553,11 @@ export const VendorChecklistView: React.FC<VendorChecklistViewProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label" htmlFor="task-cat">Category *</label>
-                    <select
+                    <CategorySelect
                       id="task-cat"
-                      className="form-select"
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as BudgetCategory })}
-                    >
-                      {Object.entries(BUDGET_CATEGORY_METADATA).map(([catKey, meta]) => (
-                        <option key={catKey} value={catKey}>{meta.label}</option>
-                      ))}
-                    </select>
+                      onChange={(cat) => setFormData({ ...formData, category: cat as BudgetCategory })}
+                    />
                   </div>
 
                   <div className="form-group">

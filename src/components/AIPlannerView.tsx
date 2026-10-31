@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone, BudgetCategory, SuggestedAction } from '../types';
 import { generateAIEventPlan, sendChatMessageToPlanner } from '../services/aiPlannerService';
+import { generateId } from '../utils/idUtils';
+import { PlanSectionCard } from './PlanSectionCard';
 import { 
   Sparkles, 
   Send, 
@@ -79,7 +81,7 @@ export const AIPlannerView: React.FC<AIPlannerViewProps> = ({
     if (!query.trim()) return;
 
     const userMsg = {
-      id: 'usr-' + Date.now(),
+      id: generateId('usr'),
       sender: 'user' as const,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: query.trim(),
@@ -344,196 +346,72 @@ export const AIPlannerView: React.FC<AIPlannerViewProps> = ({
               gap: '1.5rem',
             }}>
               {/* Decor & Floral */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div className="card-header">
-                  <div className="card-title">
-                    <Sparkles size={18} color="var(--primary-500)" />
-                    <span>{activeEvent.aiPlan.decorIdeas.title}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {activeEvent.aiPlan.decorIdeas.summary}
-                </p>
-                <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                  {activeEvent.aiPlan.decorIdeas.items.map((item, i) => {
-                    const itemKey = `decor-${i}`;
-                    const isAdopted = adoptedItems[itemKey];
-                    return (
-                      <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-subtle)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                        <span style={{ lineHeight: 1.4 }}>• {item}</span>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => !isAdopted && handleAdoptItem(item, 'decorations', itemKey)}
-                          disabled={isAdopted}
-                          style={{
-                            padding: '0.25rem 0.55rem',
-                            fontSize: '0.74rem',
-                            flexShrink: 0,
-                            background: isAdopted ? 'var(--sage-50)' : '#FFF',
-                            borderColor: isAdopted ? 'var(--sage-500)' : 'var(--border-medium)',
-                            color: isAdopted ? 'var(--sage-700)' : 'var(--text-primary)',
-                            cursor: isAdopted ? 'default' : 'pointer',
-                          }}
-                          title={isAdopted ? 'Added to Checklist' : 'Add to Vendor Checklist'}
-                        >
-                          {isAdopted ? <Check size={12} color="var(--sage-600)" /> : <PlusCircle size={12} />}
-                          <span>{isAdopted ? 'Added' : 'Add Task'}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {activeEvent.aiPlan.decorIdeas.tips && (
-                  <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--primary-50)', border: '1px solid var(--primary-100)', fontSize: '0.8rem', color: 'var(--primary-700)' }}>
-                    <strong>Styling Tip: </strong>{activeEvent.aiPlan.decorIdeas.tips.join(' ')}
-                  </div>
-                )}
-              </div>
+              <PlanSectionCard
+                section={activeEvent.aiPlan.decorIdeas}
+                category="decorations"
+                itemPrefix="decor"
+                Icon={Sparkles}
+                iconColor="var(--primary-500)"
+                tipLabel="Styling Tip: "
+                tipStyle={{
+                  background: 'var(--primary-50)',
+                  border: '1px solid var(--primary-100)',
+                  color: 'var(--primary-700)',
+                }}
+                adoptedItems={adoptedItems}
+                onAdoptItem={handleAdoptItem}
+              />
 
               {/* Catering & Beverage */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div className="card-header">
-                  <div className="card-title">
-                    <Utensils size={18} color="var(--rose-500)" />
-                    <span>{activeEvent.aiPlan.cateringSuggestions.title}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {activeEvent.aiPlan.cateringSuggestions.summary}
-                </p>
-                <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                  {activeEvent.aiPlan.cateringSuggestions.items.map((item, i) => {
-                    const itemKey = `catering-${i}`;
-                    const isAdopted = adoptedItems[itemKey];
-                    return (
-                      <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-subtle)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                        <span style={{ lineHeight: 1.4 }}>• {item}</span>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => !isAdopted && handleAdoptItem(item, 'catering', itemKey)}
-                          disabled={isAdopted}
-                          style={{
-                            padding: '0.25rem 0.55rem',
-                            fontSize: '0.74rem',
-                            flexShrink: 0,
-                            background: isAdopted ? 'var(--sage-50)' : '#FFF',
-                            borderColor: isAdopted ? 'var(--sage-500)' : 'var(--border-medium)',
-                            color: isAdopted ? 'var(--sage-700)' : 'var(--text-primary)',
-                            cursor: isAdopted ? 'default' : 'pointer',
-                          }}
-                          title={isAdopted ? 'Added to Checklist' : 'Add to Vendor Checklist'}
-                        >
-                          {isAdopted ? <Check size={12} color="var(--sage-600)" /> : <PlusCircle size={12} />}
-                          <span>{isAdopted ? 'Added' : 'Add Task'}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {activeEvent.aiPlan.cateringSuggestions.tips && (
-                  <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--sage-50)', border: '1px solid var(--sage-100)', fontSize: '0.8rem', color: 'var(--sage-700)' }}>
-                    <strong>Menu Tip: </strong>{activeEvent.aiPlan.cateringSuggestions.tips.join(' ')}
-                  </div>
-                )}
-              </div>
+              <PlanSectionCard
+                section={activeEvent.aiPlan.cateringSuggestions}
+                category="catering"
+                itemPrefix="catering"
+                Icon={Utensils}
+                iconColor="var(--rose-500)"
+                tipLabel="Menu Tip: "
+                tipStyle={{
+                  background: 'var(--sage-50)',
+                  border: '1px solid var(--sage-100)',
+                  color: 'var(--sage-700)',
+                }}
+                adoptedItems={adoptedItems}
+                onAdoptItem={handleAdoptItem}
+              />
 
               {/* Music & Entertainment */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div className="card-header">
-                  <div className="card-title">
-                    <Music size={18} color="#7C3AED" />
-                    <span>{activeEvent.aiPlan.entertainmentSuggestions.title}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {activeEvent.aiPlan.entertainmentSuggestions.summary}
-                </p>
-                <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                  {activeEvent.aiPlan.entertainmentSuggestions.items.map((item, i) => {
-                    const itemKey = `music-${i}`;
-                    const isAdopted = adoptedItems[itemKey];
-                    return (
-                      <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-subtle)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                        <span style={{ lineHeight: 1.4 }}>• {item}</span>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => !isAdopted && handleAdoptItem(item, 'entertainment', itemKey)}
-                          disabled={isAdopted}
-                          style={{
-                            padding: '0.25rem 0.55rem',
-                            fontSize: '0.74rem',
-                            flexShrink: 0,
-                            background: isAdopted ? 'var(--sage-50)' : '#FFF',
-                            borderColor: isAdopted ? 'var(--sage-500)' : 'var(--border-medium)',
-                            color: isAdopted ? 'var(--sage-700)' : 'var(--text-primary)',
-                            cursor: isAdopted ? 'default' : 'pointer',
-                          }}
-                          title={isAdopted ? 'Added to Checklist' : 'Add to Vendor Checklist'}
-                        >
-                          {isAdopted ? <Check size={12} color="var(--sage-600)" /> : <PlusCircle size={12} />}
-                          <span>{isAdopted ? 'Added' : 'Add Task'}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {activeEvent.aiPlan.entertainmentSuggestions.tips && (
-                  <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--rose-50)', border: '1px solid var(--rose-100)', fontSize: '0.8rem', color: 'var(--rose-600)' }}>
-                    <strong>Atmosphere Tip: </strong>{activeEvent.aiPlan.entertainmentSuggestions.tips.join(' ')}
-                  </div>
-                )}
-              </div>
+              <PlanSectionCard
+                section={activeEvent.aiPlan.entertainmentSuggestions}
+                category="entertainment"
+                itemPrefix="music"
+                Icon={Music}
+                iconColor="#7C3AED"
+                tipLabel="Atmosphere Tip: "
+                tipStyle={{
+                  background: 'var(--rose-50)',
+                  border: '1px solid var(--rose-100)',
+                  color: 'var(--rose-600)',
+                }}
+                adoptedItems={adoptedItems}
+                onAdoptItem={handleAdoptItem}
+              />
 
               {/* Practical Recommendations */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div className="card-header">
-                  <div className="card-title">
-                    <Compass size={18} color="var(--gold-500)" />
-                    <span>{activeEvent.aiPlan.practicalRecommendations.title}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {activeEvent.aiPlan.practicalRecommendations.summary}
-                </p>
-                <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.86rem', color: 'var(--text-primary)' }}>
-                  {activeEvent.aiPlan.practicalRecommendations.items.map((item, i) => {
-                    const itemKey = `practical-${i}`;
-                    const isAdopted = adoptedItems[itemKey];
-                    return (
-                      <li key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-subtle)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                        <span style={{ lineHeight: 1.4 }}>• {item}</span>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => !isAdopted && handleAdoptItem(item, 'miscellaneous', itemKey)}
-                          disabled={isAdopted}
-                          style={{
-                            padding: '0.25rem 0.55rem',
-                            fontSize: '0.74rem',
-                            flexShrink: 0,
-                            background: isAdopted ? 'var(--sage-50)' : '#FFF',
-                            borderColor: isAdopted ? 'var(--sage-500)' : 'var(--border-medium)',
-                            color: isAdopted ? 'var(--sage-700)' : 'var(--text-primary)',
-                            cursor: isAdopted ? 'default' : 'pointer',
-                          }}
-                          title={isAdopted ? 'Added to Checklist' : 'Add to Vendor Checklist'}
-                        >
-                          {isAdopted ? <Check size={12} color="var(--sage-600)" /> : <PlusCircle size={12} />}
-                          <span>{isAdopted ? 'Added' : 'Add Task'}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {activeEvent.aiPlan.practicalRecommendations.tips && (
-                  <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--gold-50)', border: '1px solid var(--gold-100)', fontSize: '0.8rem', color: 'var(--gold-600)' }}>
-                    <strong>Coordinator Rule: </strong>{activeEvent.aiPlan.practicalRecommendations.tips.join(' ')}
-                  </div>
-                )}
-              </div>
+              <PlanSectionCard
+                section={activeEvent.aiPlan.practicalRecommendations}
+                category="miscellaneous"
+                itemPrefix="practical"
+                Icon={Compass}
+                iconColor="var(--gold-500)"
+                tipLabel="Coordinator Rule: "
+                tipStyle={{
+                  background: 'var(--gold-50)',
+                  border: '1px solid var(--gold-100)',
+                  color: 'var(--gold-600)',
+                }}
+                adoptedItems={adoptedItems}
+                onAdoptItem={handleAdoptItem}
+              />
             </div>
           </div>
         ) : (

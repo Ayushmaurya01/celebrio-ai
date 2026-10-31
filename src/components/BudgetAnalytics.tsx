@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { BudgetSummary } from '../services/budgetService';
-import { BudgetCategory } from '../types';
+import { BudgetCategory, BudgetSummary } from '../types';
 import { 
   PieChart as PieChartIcon, 
   TrendingUp, 

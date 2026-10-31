@@ -1,5 +1,15 @@
-import { useState, useEffect } from 'react';
-import { EventPlan, AppSettings, BudgetItem, VendorTask, TimelineMilestone, MilestoneStatus } from './types';
+import { useState } from 'react';
+import { 
+  EventPlan, 
+  AppSettings, 
+  BudgetItem, 
+  VendorTask, 
+  TimelineMilestone, 
+  MilestoneStatus,
+  NavigationTab,
+  ToastItem,
+} from './types';
+import { generateId } from './utils/idUtils';
 import { 
   loadAllEvents, 
   saveAllEvents, 
@@ -9,7 +19,7 @@ import {
   saveSettings, 
   resetToSampleEvents 
 } from './services/storageService';
-import { Sidebar, NavigationTab } from './components/Sidebar';
+import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { DashboardView } from './components/DashboardView';
 import { AIPlannerView } from './components/AIPlannerView';
@@ -19,11 +29,22 @@ import { VendorChecklistView } from './components/VendorChecklistView';
 import { SavedPlansView } from './components/SavedPlansView';
 import { EventCreationModal } from './components/EventCreationModal';
 import { SettingsModal } from './components/SettingsModal';
-import { Toast, ToastItem } from './components/Toast';
+import { Toast } from './components/Toast';
 
 export function App() {
-  const [events, setEvents] = useState<EventPlan[]>([]);
-  const [activeEventId, setActiveEventId] = useState<string>('');
+  const [events, setEvents] = useState<EventPlan[]>(() => loadAllEvents());
+  const [activeEventId, setActiveEventId] = useState<string>(() => {
+    const loadedEvents = loadAllEvents();
+    const savedActiveId = loadActiveEventId();
+    if (savedActiveId && loadedEvents.some((e) => e.id === savedActiveId)) {
+      return savedActiveId;
+    }
+    if (loadedEvents.length > 0) {
+      saveActiveEventId(loadedEvents[0].id);
+      return loadedEvents[0].id;
+    }
+    return '';
+  });
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
@@ -39,22 +60,8 @@ export function App() {
   const [editingEventForModal, setEditingEventForModal] = useState<EventPlan | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  // Initial load
-  useEffect(() => {
-    const loadedEvents = loadAllEvents();
-    setEvents(loadedEvents);
-
-    const savedActiveId = loadActiveEventId();
-    if (savedActiveId && loadedEvents.some((e) => e.id === savedActiveId)) {
-      setActiveEventId(savedActiveId);
-    } else if (loadedEvents.length > 0) {
-      setActiveEventId(loadedEvents[0].id);
-      saveActiveEventId(loadedEvents[0].id);
-    }
-  }, []);
-
   const showToast = (message: string, type: 'success' | 'warning' | 'info' = 'info') => {
-    const id = 'toast-' + Date.now() + Math.random();
+    const id = generateId('toast');
     setToasts((prev) => [...prev, { id, message, type }]);
 
     setTimeout(() => {
@@ -103,7 +110,7 @@ export function App() {
   const handleDuplicateEvent = (eventToDup: EventPlan) => {
     const duplicated: EventPlan = {
       ...eventToDup,
-      id: 'event-' + Date.now(),
+      id: generateId('event'),
       name: `${eventToDup.name} (Copy)`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -162,7 +169,7 @@ export function App() {
     if (!activeEvent) return;
     const newItem: BudgetItem = {
       ...item,
-      id: 'b-' + Date.now(),
+      id: generateId('b'),
     };
     handleUpdateActiveEvent({
       ...activeEvent,
@@ -174,7 +181,7 @@ export function App() {
     if (!activeEvent) return;
     const newTask: VendorTask = {
       ...task,
-      id: 'vt-' + Date.now(),
+      id: generateId('vt'),
     };
     handleUpdateActiveEvent({
       ...activeEvent,
@@ -186,7 +193,7 @@ export function App() {
     if (!activeEvent) return;
     const newM: TimelineMilestone = {
       ...milestone,
-      id: 'm-' + Date.now(),
+      id: generateId('m'),
     };
     handleUpdateActiveEvent({
       ...activeEvent,

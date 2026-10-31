@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { EventPlan, TimelineMilestone, MilestoneStatus, MilestoneCategory } from '../types';
 import { 
   isMilestoneOverdue, 
@@ -8,6 +8,8 @@ import {
 import { 
   validateTimelineMilestone 
 } from '../services/validationService';
+import { generateId } from '../utils/idUtils';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import { 
   CalendarClock, 
   Plus, 
@@ -37,6 +39,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<TimelineMilestone | null>(null);
 
+  useModalAccessibility(isModalOpen, () => setIsModalOpen(false));
+
   // Form state
   const [formData, setFormData] = useState<{
     title: string;
@@ -59,14 +63,22 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const [formErrors, setFormErrors] = useState<{ title?: string; targetDate?: string }>({});
   const [formWarnings, setFormWarnings] = useState<string[]>([]);
 
-  const sequenceIssues = checkDateSequenceIssues(activeEvent.timeline, activeEvent.date);
-  const sortedMilestones = sortMilestonesChronologically(activeEvent.timeline);
+  const sequenceIssues = useMemo(
+    () => checkDateSequenceIssues(activeEvent.timeline, activeEvent.date),
+    [activeEvent.timeline, activeEvent.date]
+  );
+  const sortedMilestones = useMemo(
+    () => sortMilestonesChronologically(activeEvent.timeline),
+    [activeEvent.timeline]
+  );
 
-  const displayedMilestones = sortedMilestones.filter((m) => {
-    if (filterView === 'prep') return !m.isDayOfAgenda;
-    if (filterView === 'day_of') return Boolean(m.isDayOfAgenda);
-    return true;
-  });
+  const displayedMilestones = useMemo(() => {
+    return sortedMilestones.filter((m) => {
+      if (filterView === 'prep') return !m.isDayOfAgenda;
+      if (filterView === 'day_of') return Boolean(m.isDayOfAgenda);
+      return true;
+    });
+  }, [sortedMilestones, filterView]);
 
   const overdueCount = activeEvent.timeline.filter((m) => isMilestoneOverdue(m)).length;
   const completedCount = activeEvent.timeline.filter((m) => m.status === 'completed').length;
@@ -164,7 +176,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       showToast(`Updated milestone "${formData.title}"`, 'success');
     } else {
       const newM: TimelineMilestone = {
-        id: 'm-' + Date.now(),
+        id: generateId('m'),
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
@@ -420,7 +432,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       {/* Add / Edit Milestone Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-labelledby="modal-milestone-title">
+          <div 
+            className="modal-card" 
+            onClick={(e) => e.stopPropagation()} 
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby="modal-milestone-title"
+          >
             <div className="modal-header">
               <h2 id="modal-milestone-title" style={{ fontSize: '1.25rem' }}>
                 {editingMilestone ? 'Edit Schedule Milestone' : 'Add Schedule Milestone'}

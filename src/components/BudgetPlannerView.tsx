@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { EventPlan, BudgetItem, BudgetCategory, PaidStatus } from '../types';
-import { 
-  calculateBudgetSummary, 
-  BUDGET_CATEGORY_METADATA 
-} from '../services/budgetService';
+import { calculateBudgetSummary, BUDGET_CATEGORY_METADATA } from '../services/budgetService';
+import { generateId } from '../utils/idUtils';
 import { BudgetAnalytics } from './BudgetAnalytics';
+import { CategorySelect } from './CategorySelect';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import { 
   Wallet, 
   Plus, 
@@ -33,6 +33,8 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BudgetItem | null>(null);
 
+  useModalAccessibility(isModalOpen, () => setIsModalOpen(false));
+
   // Form state
   const [formData, setFormData] = useState<{
     name: string;
@@ -52,7 +54,10 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
 
   const [formErrors, setFormErrors] = useState<{ name?: string; estimatedCost?: string }>({});
 
-  const budgetSummary = calculateBudgetSummary(activeEvent.totalBudget, activeEvent.budgetItems);
+  const budgetSummary = useMemo(
+    () => calculateBudgetSummary(activeEvent.totalBudget, activeEvent.budgetItems),
+    [activeEvent.totalBudget, activeEvent.budgetItems]
+  );
 
   const openAddModal = (categoryPref?: BudgetCategory) => {
     setEditingItem(null);
@@ -121,7 +126,7 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
       showToast(`Updated expense "${formData.name}"`, 'success');
     } else {
       const newItem: BudgetItem = {
-        id: 'b-' + Date.now(),
+        id: generateId('b'),
         name: formData.name.trim(),
         category: formData.category,
         estimatedCost: estCost,
@@ -155,16 +160,18 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
     }
   };
 
-  const filteredItems = activeEvent.budgetItems.filter((item) => {
-    if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchName = item.name.toLowerCase().includes(query);
-      const matchNotes = item.notes?.toLowerCase().includes(query);
-      return matchName || matchNotes;
-    }
-    return true;
-  });
+  const filteredItems = useMemo(() => {
+    return activeEvent.budgetItems.filter((item) => {
+      if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchName = item.name.toLowerCase().includes(query);
+        const matchNotes = item.notes?.toLowerCase().includes(query);
+        return matchName || matchNotes;
+      }
+      return true;
+    });
+  }, [activeEvent.budgetItems, selectedCategory, searchQuery]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -529,7 +536,13 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
       {/* Add / Edit Expense Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-labelledby="modal-expense-title">
+          <div 
+            className="modal-card" 
+            onClick={(e) => e.stopPropagation()} 
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby="modal-expense-title"
+          >
             <div className="modal-header">
               <h2 id="modal-expense-title" style={{ fontSize: '1.25rem' }}>
                 {editingItem ? 'Edit Expense Item' : 'Add New Expense Item'}
@@ -557,16 +570,11 @@ export const BudgetPlannerView: React.FC<BudgetPlannerViewProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label" htmlFor="expense-category">Category *</label>
-                    <select
+                    <CategorySelect
                       id="expense-category"
-                      className="form-select"
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as BudgetCategory })}
-                    >
-                      {Object.entries(BUDGET_CATEGORY_METADATA).map(([catKey, meta]) => (
-                        <option key={catKey} value={catKey}>{meta.label}</option>
-                      ))}
-                    </select>
+                      onChange={(cat) => setFormData({ ...formData, category: cat as BudgetCategory })}
+                    />
                   </div>
 
                   <div className="form-group">

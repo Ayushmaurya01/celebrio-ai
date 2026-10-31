@@ -10,13 +10,8 @@ import {
   HeartHandshake
 } from 'lucide-react';
 
-export type NavigationTab = 
-  | 'dashboard' 
-  | 'ai_planner' 
-  | 'budget' 
-  | 'timeline' 
-  | 'vendors' 
-  | 'saved_plans';
+import { NavigationTab } from '../types';
+export type { NavigationTab };
 
 interface SidebarProps {
   currentTab: NavigationTab;

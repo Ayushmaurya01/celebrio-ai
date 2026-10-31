@@ -1,4 +1,12 @@
-import { BudgetCategory, BudgetItem } from '../types';
+import { 
+  BudgetCategory, 
+  BudgetItem, 
+  CategorySummary, 
+  BudgetInsights, 
+  BudgetSummary 
+} from '../types';
+
+export type { CategorySummary, BudgetInsights, BudgetSummary };
 
 export const BUDGET_CATEGORY_METADATA: Record<
   BudgetCategory,
@@ -13,42 +21,6 @@ export const BUDGET_CATEGORY_METADATA: Record<
   invitations: { label: 'Invitations & Favors', defaultPercentage: 3, icon: 'Mail', color: '#0D9488' },
   miscellaneous: { label: 'Buffer & Miscellaneous', defaultPercentage: 4, icon: 'ShieldCheck', color: '#34A853' },
 };
-
-export interface CategorySummary {
-  category: BudgetCategory;
-  label: string;
-  allocatedAmount: number;
-  allocatedPercentage: number;
-  totalEstimated: number;
-  totalActual: number;
-  actualItemCount: number;
-  itemCount: number;
-  isOverAllocated: boolean;
-  varianceAmount: number; // positive = over budget, negative = under
-  color: string;
-}
-
-export interface BudgetInsights {
-  highestCategory?: CategorySummary;
-  overBudgetCategories: CategorySummary[];
-  underBudgetCategories: CategorySummary[];
-  confirmedActualSpend: number;
-  hasActualsRecorded: boolean;
-  savingsTip: string;
-  utilizationRate: number;
-}
-
-export interface BudgetSummary {
-  totalBudget: number;
-  totalEstimated: number;
-  totalActual: number;
-  remainingBudget: number;
-  percentageUsed: number;
-  isOverBudget: boolean;
-  overBudgetAmount: number;
-  categories: Record<BudgetCategory, CategorySummary>;
-  insights: BudgetInsights;
-}
 
 export function calculateBudgetSummary(
   totalBudget: number,
@@ -128,7 +100,7 @@ export function calculateBudgetSummary(
   // Generate deterministic, explainable insights
   const catArray = Object.values(categories);
   const activeSpendCats = catArray.filter((c) => c.totalEstimated > 0);
-  const highestCategory = activeSpendCats.sort((a, b) => b.totalEstimated - a.totalEstimated)[0];
+  const highestCategory = [...activeSpendCats].sort((a, b) => b.totalEstimated - a.totalEstimated)[0];
   const overBudgetCategories = catArray.filter((c) => c.isOverAllocated);
   const underBudgetCategories = catArray.filter((c) => !c.isOverAllocated && c.allocatedAmount > 0);
 

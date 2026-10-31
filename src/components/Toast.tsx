@@ -1,11 +1,8 @@
 import React from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
-export interface ToastItem {
-  id: string;
-  message: string;
-  type: 'success' | 'warning' | 'info';
-}
+import { ToastItem, ToastType } from '../types';
+export type { ToastItem, ToastType };
 
 interface ToastProps {
   toasts: ToastItem[];
@@ -17,7 +14,7 @@ export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
     <div className="toast-container" aria-live="polite" aria-atomic="true">
       {toasts.map((toast) => {
         const Icon = toast.type === 'success' ? CheckCircle2 : toast.type === 'warning' ? AlertCircle : Info;
-        const iconColor = toast.type === 'success' ? '#34A853' : toast.type === 'warning' ? '#FBBC04' : '#1A73E8';
+        const iconColor = toast.type === 'success' ? 'var(--sage-500)' : toast.type === 'warning' ? 'var(--gold-500)' : 'var(--primary-500)';
 
         return (
           <div key={toast.id} className="toast">

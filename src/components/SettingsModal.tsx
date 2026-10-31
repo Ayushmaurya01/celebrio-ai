@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppSettings } from '../types';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import { 
   X, 
   Key, 
@@ -27,6 +28,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetData,
   showToast,
 }) => {
+  useModalAccessibility(isOpen, onClose);
+
   const [apiKey, setApiKey] = useState(settings.geminiApiKey || '');
   const [model, setModel] = useState(settings.model || 'gemini-2.5-flash');
   const [preferOfflineDemo, setPreferOfflineDemo] = useState(settings.preferOfflineDemo);
@@ -58,6 +61,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         className="modal-card" 
         onClick={(e) => e.stopPropagation()} 
         role="dialog" 
+        aria-modal="true"
         aria-labelledby="modal-settings-title"
         style={{ maxWidth: '580px' }}
       >
@@ -96,9 +100,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Offline vs Live Mode Selection */}
             <div className="form-group">
               <label className="form-label">Planning AI Mode</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div 
+                role="radiogroup" 
+                aria-label="Planning AI Mode"
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}
+              >
                 <div 
+                  role="radio"
+                  aria-checked={preferOfflineDemo}
+                  tabIndex={0}
                   onClick={() => setPreferOfflineDemo(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPreferOfflineDemo(true);
+                    }
+                  }}
                   style={{
                     padding: '0.85rem',
                     borderRadius: 'var(--radius-md)',
@@ -119,7 +136,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 <div 
+                  role="radio"
+                  aria-checked={!preferOfflineDemo}
+                  tabIndex={0}
                   onClick={() => setPreferOfflineDemo(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPreferOfflineDemo(false);
+                    }
+                  }}
                   style={{
                     padding: '0.85rem',
                     borderRadius: 'var(--radius-md)',

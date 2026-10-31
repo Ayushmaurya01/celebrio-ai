@@ -5,6 +5,8 @@ import { generateInitialBudgetItems } from '../services/budgetService';
 import { generateInitialMilestones } from '../services/timelineService';
 import { generateInitialVendorTasks } from '../services/vendorTaskService';
 import { generateDeterministicPlan } from '../services/aiPlannerService';
+import { generateId } from '../utils/idUtils';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import { 
   X, 
   Sparkles
@@ -23,6 +25,8 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
   onSave,
   editingEvent,
 }) => {
+  useModalAccessibility(isOpen, onClose);
+
   const [formData, setFormData] = useState<Partial<EventPlan>>({
     name: '',
     type: 'wedding',
@@ -129,7 +133,7 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
     } else {
       // Create new event plan and seed intelligent budget, timeline, vendor checklist, and AI plan
       const newPlanBase: EventPlan = {
-        id: 'event-' + Date.now(),
+        id: generateId('event'),
         name: formData.name!.trim(),
         type: formData.type!,
         date: formData.date!,
@@ -171,6 +175,7 @@ export const EventCreationModal: React.FC<EventCreationModalProps> = ({
         className="modal-card" 
         onClick={(e) => e.stopPropagation()} 
         role="dialog" 
+        aria-modal="true"
         aria-labelledby="modal-event-title"
         style={{ maxWidth: '720px' }}
       >

@@ -1,10 +1,7 @@
-import { AIPlan, EventPlan, ChatMessage } from '../types';
+import { AIPlan, EventPlan, ChatMessage, PlanGenerationOptions } from '../types';
+import { generateId } from '../utils/idUtils';
 
-export interface PlanGenerationOptions {
-  apiKey?: string;
-  model?: string;
-  forceOffline?: boolean;
-}
+export type { PlanGenerationOptions };
 
 export async function generateAIEventPlan(
   event: EventPlan,
@@ -176,7 +173,7 @@ export function generateDeterministicPlan(event: EventPlan, note?: string): AIPl
   ];
 
   return {
-    id: 'ai-plan-' + Date.now(),
+    id: generateId('ai-plan'),
     generatedAt: new Date().toISOString(),
     isLiveAI: false,
     modelUsed: note ? `Deterministic AI Planner (${note})` : 'Deterministic Offline AI Planner',
@@ -343,7 +340,7 @@ You can ask me to refine specific aspects like cocktail recipes, timeline schedu
   }
 
   return {
-    id: 'msg-' + Date.now(),
+    id: generateId('msg'),
     sender: 'assistant',
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     text,
@@ -445,7 +442,7 @@ Event Details:
   const parsed = JSON.parse(textContent);
 
   return {
-    id: 'ai-plan-' + Date.now(),
+    id: generateId('ai-plan'),
     generatedAt: new Date().toISOString(),
     isLiveAI: true,
     modelUsed: `Gemini Live (${modelName})`,
@@ -552,7 +549,7 @@ Where appropriate, format with clear bullet points. Offer concrete ideas for men
   const replyText = json.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received from model.';
 
   return {
-    id: 'msg-' + Date.now(),
+    id: generateId('msg'),
     sender: 'assistant',
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     text: replyText,

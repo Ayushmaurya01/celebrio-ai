@@ -1,6 +1,14 @@
-import { ValidationError, EventPlan, TimelineMilestone } from '../types';
+import {
+  ValidationError,
+  EventPlan,
+  TimelineMilestone,
+  FormValidationResult,
+  MilestoneValidationResult,
+} from '../types';
 
-export function validateEventForm(data: Partial<EventPlan>): { isValid: boolean; errors: ValidationError[] } {
+export type { FormValidationResult, MilestoneValidationResult };
+
+export function validateEventForm(data: Partial<EventPlan>): FormValidationResult {
   const errors: ValidationError[] = [];
 
   // Name validation
@@ -69,7 +77,7 @@ export function validateEventForm(data: Partial<EventPlan>): { isValid: boolean;
 export function validateTimelineMilestone(
   milestone: Partial<TimelineMilestone>,
   eventDate: string
-): { isValid: boolean; errors: ValidationError[]; warnings: string[] } {
+): MilestoneValidationResult {
   const errors: ValidationError[] = [];
   const warnings: string[] = [];
 

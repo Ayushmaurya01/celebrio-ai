@@ -1,5 +1,6 @@
 import React from 'react';
-import { EventPlan, AppSettings } from '../types';
+import { EventPlan, AppSettings, NavigationTab } from '../types';
+import { getDaysUntilEvent, formatEventDate } from '../utils/dateUtils';
 import { 
   Sparkles, 
   Calendar, 
@@ -9,8 +10,6 @@ import {
   Printer,
   ChevronDown
 } from 'lucide-react';
-
-import { NavigationTab } from './Sidebar';
 
 interface TopBarProps {
   activeEvent: EventPlan | null;
@@ -33,17 +32,6 @@ export const TopBar: React.FC<TopBarProps> = ({
   onNavigate,
   settings,
 }) => {
-  // Calculate countdown days
-  const getDaysUntilEvent = (dateStr: string) => {
-    if (!dateStr) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(dateStr + 'T00:00:00');
-    if (isNaN(target.getTime())) return null;
-    const diffTime = target.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
   const daysUntil = activeEvent ? getDaysUntilEvent(activeEvent.date) : null;
   const isLiveAI = Boolean(settings.geminiApiKey && !settings.preferOfflineDemo);
 
@@ -81,7 +69,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               >
                 {allEvents.map((ev) => (
                   <option key={ev.id} value={ev.id}>
-                    {ev.name} ({new Date(ev.date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })})
+                    {ev.name} ({formatEventDate(ev.date)})
                   </option>
                 ))}
               </select>

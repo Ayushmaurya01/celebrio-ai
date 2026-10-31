@@ -1,16 +1,17 @@
-import { TimelineMilestone, EventType } from '../types';
+import { TimelineMilestone, EventType, DateSequenceIssue } from '../types';
+import { subtractDays, getDaysUntilEvent, isValidDateString } from '../utils/dateUtils';
+
+export type { DateSequenceIssue };
 
 export function isMilestoneOverdue(milestone: TimelineMilestone, todayDateStr?: string): boolean {
   if (milestone.status === 'completed') return false;
   if (!milestone.targetDate) return false;
 
-  const today = todayDateStr ? new Date(todayDateStr + 'T00:00:00') : new Date();
-  today.setHours(0, 0, 0, 0);
+  const refDate = todayDateStr ? new Date(todayDateStr + 'T00:00:00') : undefined;
+  const daysUntil = getDaysUntilEvent(milestone.targetDate, refDate);
+  if (daysUntil === null) return false;
 
-  const target = new Date(milestone.targetDate + 'T00:00:00');
-  if (isNaN(target.getTime())) return false;
-
-  return target < today;
+  return daysUntil < 0;
 }
 
 export function sortMilestonesChronologically(milestones: TimelineMilestone[]): TimelineMilestone[] {
@@ -29,8 +30,8 @@ export function sortMilestonesChronologically(milestones: TimelineMilestone[]): 
 export function checkDateSequenceIssues(
   milestones: TimelineMilestone[],
   eventDate: string
-): { milestoneId: string; issue: string }[] {
-  const issues: { milestoneId: string; issue: string }[] = [];
+): DateSequenceIssue[] {
+  const issues: DateSequenceIssue[] = [];
   const eventD = new Date(eventDate + 'T00:00:00');
 
   milestones.forEach((m) => {
@@ -52,16 +53,9 @@ export function generateInitialMilestones(
   eventDateStr: string,
   eventType: EventType
 ): TimelineMilestone[] {
-  const eventDate = new Date(eventDateStr + 'T00:00:00');
-  if (isNaN(eventDate.getTime())) {
+  if (!isValidDateString(eventDateStr)) {
     return [];
   }
-
-  const subtractDays = (days: number): string => {
-    const d = new Date(eventDate);
-    d.setDate(d.getDate() - days);
-    return d.toISOString().split('T')[0];
-  };
 
   const sameDay = eventDateStr;
 
@@ -72,7 +66,7 @@ export function generateInitialMilestones(
         title: 'Lock Venue & Set Date',
         description: 'Tour and sign contract with ceremony and reception venue; pay initial deposit.',
         category: 'venue',
-        targetDate: subtractDays(180),
+        targetDate: subtractDays(eventDateStr, 180),
         status: 'completed',
         isDayOfAgenda: false,
       },
@@ -81,7 +75,7 @@ export function generateInitialMilestones(
         title: 'Hire Key Vendors (Photo, Video, Catering)',
         description: 'Interview and book lead photographer, videographer, and primary caterer.',
         category: 'vendors',
-        targetDate: subtractDays(120),
+        targetDate: subtractDays(eventDateStr, 120),
         status: 'in_progress',
         isDayOfAgenda: false,
       },
@@ -90,7 +84,7 @@ export function generateInitialMilestones(
         title: 'Mail Save-the-Dates & Set Registry',
         description: 'Send digital or physical save-the-date cards to guest list and launch event website.',
         category: 'invitations',
-        targetDate: subtractDays(90),
+        targetDate: subtractDays(eventDateStr, 90),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -99,7 +93,7 @@ export function generateInitialMilestones(
         title: 'Attire Selection & Floral Concept',
         description: 'Finalize wedding dress/suit fittings, bridal party attire, and florist consultation.',
         category: 'decor',
-        targetDate: subtractDays(60),
+        targetDate: subtractDays(eventDateStr, 60),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -108,7 +102,7 @@ export function generateInitialMilestones(
         title: 'Menu Tasting & Formal Invitations',
         description: 'Conduct food and wine tasting; send official formal invitations with RSVP deadline.',
         category: 'invitations',
-        targetDate: subtractDays(45),
+        targetDate: subtractDays(eventDateStr, 45),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -117,7 +111,7 @@ export function generateInitialMilestones(
         title: 'Finalize Seating Chart & Vendor Timings',
         description: 'Confirm final headcount with caterer, build table layout, and distribute run-sheet.',
         category: 'logistics',
-        targetDate: subtractDays(14),
+        targetDate: subtractDays(eventDateStr, 14),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -126,7 +120,7 @@ export function generateInitialMilestones(
         title: 'Rehearsal Dinner & Final Walkthrough',
         description: 'Run through ceremony processional and hand over day-of coordinator binder.',
         category: 'general',
-        targetDate: subtractDays(1),
+        targetDate: subtractDays(eventDateStr, 1),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -199,7 +193,7 @@ export function generateInitialMilestones(
         title: 'Choose Theme & Secure Venue',
         description: 'Lock in party theme concept and deposit for venue or private dining room.',
         category: 'venue',
-        targetDate: subtractDays(45),
+        targetDate: subtractDays(eventDateStr, 45),
         status: 'completed',
         isDayOfAgenda: false,
       },
@@ -208,7 +202,7 @@ export function generateInitialMilestones(
         title: 'Send Invitations & Collect RSVPs',
         description: 'Send digital animated invites and track food allergy responses.',
         category: 'invitations',
-        targetDate: subtractDays(30),
+        targetDate: subtractDays(eventDateStr, 30),
         status: 'in_progress',
         isDayOfAgenda: false,
       },
@@ -217,7 +211,7 @@ export function generateInitialMilestones(
         title: 'Order Custom Cake & Food Catering',
         description: 'Order signature themed birthday cake and confirm food platters.',
         category: 'vendors',
-        targetDate: subtractDays(20),
+        targetDate: subtractDays(eventDateStr, 20),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -226,7 +220,7 @@ export function generateInitialMilestones(
         title: 'Purchase Decor & Props',
         description: 'Procure balloon installation, photo booth backdrop, lighting, and neon sign.',
         category: 'decor',
-        targetDate: subtractDays(10),
+        targetDate: subtractDays(eventDateStr, 10),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -235,7 +229,7 @@ export function generateInitialMilestones(
         title: 'Finalize Playlist & Games Schedule',
         description: 'Compile guest playlist, prepare party games, and brief DJ / speaker setup.',
         category: 'logistics',
-        targetDate: subtractDays(3),
+        targetDate: subtractDays(eventDateStr, 3),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -288,7 +282,7 @@ export function generateInitialMilestones(
         title: 'Permits, Council Approvals & Venue Access',
         description: 'Submit city park/hall permits, noise exemptions, and public liability insurance.',
         category: 'venue',
-        targetDate: subtractDays(60),
+        targetDate: subtractDays(eventDateStr, 60),
         status: 'completed',
         isDayOfAgenda: false,
       },
@@ -297,7 +291,7 @@ export function generateInitialMilestones(
         title: 'Vendor & Stallholder Registration',
         description: 'Invite local food trucks, artisanal craft stalls, and community performers.',
         category: 'vendors',
-        targetDate: subtractDays(45),
+        targetDate: subtractDays(eventDateStr, 45),
         status: 'in_progress',
         isDayOfAgenda: false,
       },
@@ -306,7 +300,7 @@ export function generateInitialMilestones(
         title: 'Community Outreach & Flyers',
         description: 'Distribute posters, publish social media campaign, and alert neighborhood associations.',
         category: 'invitations',
-        targetDate: subtractDays(30),
+        targetDate: subtractDays(eventDateStr, 30),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -315,7 +309,7 @@ export function generateInitialMilestones(
         title: 'Safety, Waste Management & First Aid',
         description: 'Order portaloos, recycling bins, volunteer vests, and schedule St John First Aid.',
         category: 'logistics',
-        targetDate: subtractDays(14),
+        targetDate: subtractDays(eventDateStr, 14),
         status: 'pending',
         isDayOfAgenda: false,
       },
@@ -324,7 +318,7 @@ export function generateInitialMilestones(
         title: 'Volunteer Briefing & Equipment Delivery',
         description: 'Conduct coordinator walk-through, deliver PA audio system, tables, and gazebos.',
         category: 'general',
-        targetDate: subtractDays(2),
+        targetDate: subtractDays(eventDateStr, 2),
         status: 'pending',
         isDayOfAgenda: false,
       },

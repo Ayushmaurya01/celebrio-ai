@@ -1,12 +1,9 @@
-import { VendorTask, EventType } from '../types';
+import { VendorTask, EventType, VendorTaskProgress } from '../types';
+import { subtractDays } from '../utils/dateUtils';
 
-export function calculateVendorTaskProgress(tasks: VendorTask[]): {
-  total: number;
-  completed: number;
-  percentage: number;
-  pendingCount: number;
-  totalCommittedSpend: number;
-} {
+export type { VendorTaskProgress };
+
+export function calculateVendorTaskProgress(tasks: VendorTask[]): VendorTaskProgress {
   const total = tasks.length;
   if (total === 0) {
     return {
@@ -40,13 +37,6 @@ export function generateInitialVendorTasks(
   eventDateStr: string,
   eventType: EventType
 ): VendorTask[] {
-  const eventDate = new Date(eventDateStr + 'T00:00:00');
-  const subtractDays = (days: number): string => {
-    if (isNaN(eventDate.getTime())) return eventDateStr;
-    const d = new Date(eventDate);
-    d.setDate(d.getDate() - days);
-    return d.toISOString().split('T')[0];
-  };
 
   if (eventType === 'wedding') {
     return [
@@ -61,7 +51,7 @@ export function generateInitialVendorTasks(
         notes: 'Deposit paid for terrace and banquet hall; site manager assigned.',
         bookingStatus: 'booked',
         estimatedCost: 12000,
-        dueDate: subtractDays(180),
+        dueDate: subtractDays(eventDateStr, 180),
         priority: 'high',
         completed: true,
       },
@@ -76,7 +66,7 @@ export function generateInitialVendorTasks(
         notes: 'Includes 10 hours coverage, 2 shooters, drone aerials and digital gallery.',
         bookingStatus: 'deposit_paid',
         estimatedCost: 4500,
-        dueDate: subtractDays(120),
+        dueDate: subtractDays(eventDateStr, 120),
         priority: 'high',
         completed: true,
       },
@@ -91,7 +81,7 @@ export function generateInitialVendorTasks(
         notes: 'Reviewing 3 sample menus: Mediterranean, French Bistro, Farm-to-Table.',
         bookingStatus: 'quote_received',
         estimatedCost: 9500,
-        dueDate: subtractDays(75),
+        dueDate: subtractDays(eventDateStr, 75),
         priority: 'high',
         completed: false,
       },
@@ -106,7 +96,7 @@ export function generateInitialVendorTasks(
         notes: 'Need quote for ivory roses, blush hydrangeas, and ceremony arch framing.',
         bookingStatus: 'inquiry',
         estimatedCost: 3800,
-        dueDate: subtractDays(60),
+        dueDate: subtractDays(eventDateStr, 60),
         priority: 'medium',
         completed: false,
       },
@@ -121,7 +111,7 @@ export function generateInitialVendorTasks(
         notes: 'Acoustic duo for ceremony + 6-piece reception showband.',
         bookingStatus: 'inquiry',
         estimatedCost: 4200,
-        dueDate: subtractDays(60),
+        dueDate: subtractDays(eventDateStr, 60),
         priority: 'medium',
         completed: false,
       },
@@ -136,7 +126,7 @@ export function generateInitialVendorTasks(
         notes: 'Wax seals, cotton paper, gold foil stamping.',
         bookingStatus: 'inquiry',
         estimatedCost: 1100,
-        dueDate: subtractDays(50),
+        dueDate: subtractDays(eventDateStr, 50),
         priority: 'low',
         completed: false,
       },
@@ -154,7 +144,7 @@ export function generateInitialVendorTasks(
         notes: 'Minimum spend includes open bar and private bartender.',
         bookingStatus: 'booked',
         estimatedCost: 2800,
-        dueDate: subtractDays(30),
+        dueDate: subtractDays(eventDateStr, 30),
         priority: 'high',
         completed: true,
       },
@@ -169,7 +159,7 @@ export function generateInitialVendorTasks(
         notes: 'Requested 90s & 2000s throwback dance set + haze machine.',
         bookingStatus: 'deposit_paid',
         estimatedCost: 950,
-        dueDate: subtractDays(20),
+        dueDate: subtractDays(eventDateStr, 20),
         priority: 'high',
         completed: false,
       },
@@ -184,7 +174,7 @@ export function generateInitialVendorTasks(
         notes: 'Two-tier salted caramel and Belgian dark chocolate drip cake.',
         bookingStatus: 'quote_received',
         estimatedCost: 350,
-        dueDate: subtractDays(15),
+        dueDate: subtractDays(eventDateStr, 15),
         priority: 'medium',
         completed: false,
       },
@@ -199,7 +189,7 @@ export function generateInitialVendorTasks(
         notes: 'Organic balloon garland with custom warm-gold neon sign.',
         bookingStatus: 'inquiry',
         estimatedCost: 750,
-        dueDate: subtractDays(10),
+        dueDate: subtractDays(eventDateStr, 10),
         priority: 'medium',
         completed: false,
       },
@@ -218,7 +208,7 @@ export function generateInitialVendorTasks(
         notes: 'Permit filed for 500 attendees, waste management bond included.',
         bookingStatus: 'booked',
         estimatedCost: 1200,
-        dueDate: subtractDays(45),
+        dueDate: subtractDays(eventDateStr, 45),
         priority: 'high',
         completed: true,
       },
@@ -233,7 +223,7 @@ export function generateInitialVendorTasks(
         notes: '4 trucks: Tacos, Woodfire Pizza, Vegan Bowls, Gelato.',
         bookingStatus: 'quote_received',
         estimatedCost: 2400,
-        dueDate: subtractDays(30),
+        dueDate: subtractDays(eventDateStr, 30),
         priority: 'high',
         completed: false,
       },
@@ -248,7 +238,7 @@ export function generateInitialVendorTasks(
         notes: 'Includes wireless microphones, monitors, and rain cover.',
         bookingStatus: 'quote_received',
         estimatedCost: 1800,
-        dueDate: subtractDays(25),
+        dueDate: subtractDays(eventDateStr, 25),
         priority: 'medium',
         completed: false,
       },
@@ -263,7 +253,7 @@ export function generateInitialVendorTasks(
         notes: 'Recycling, compost bins and 4 portable luxury restroom units.',
         bookingStatus: 'inquiry',
         estimatedCost: 950,
-        dueDate: subtractDays(20),
+        dueDate: subtractDays(eventDateStr, 20),
         priority: 'medium',
         completed: false,
       },

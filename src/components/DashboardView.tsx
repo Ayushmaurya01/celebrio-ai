@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { EventPlan } from '../types';
+import { useState, useMemo } from 'react';
+import { EventPlan, NavigationTab } from '../types';
 import { calculateBudgetSummary } from '../services/budgetService';
 import { calculateVendorTaskProgress } from '../services/vendorTaskService';
 import { isMilestoneOverdue } from '../services/timelineService';
+import { getDaysUntilEvent, formatEventDate } from '../utils/dateUtils';
 import { BudgetAnalytics } from './BudgetAnalytics';
+import { MetricCard } from './MetricCard';
 import { 
   Sparkles, 
   MapPin, 
@@ -19,7 +21,6 @@ import {
   Receipt,
   Check
 } from 'lucide-react';
-import { NavigationTab } from './Sidebar';
 
 interface DashboardViewProps {
   activeEvent: EventPlan;
@@ -35,31 +36,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onToggleMilestoneStatus,
 }) => {
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
-  const budgetSummary = calculateBudgetSummary(activeEvent.totalBudget, activeEvent.budgetItems);
-  const taskProgress = calculateVendorTaskProgress(activeEvent.vendorTasks);
+  const budgetSummary = useMemo(
+    () => calculateBudgetSummary(activeEvent.totalBudget, activeEvent.budgetItems),
+    [activeEvent.totalBudget, activeEvent.budgetItems]
+  );
+  const taskProgress = useMemo(
+    () => calculateVendorTaskProgress(activeEvent.vendorTasks),
+    [activeEvent.vendorTasks]
+  );
   
   // Calculate days remaining
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const eventDate = new Date(activeEvent.date + 'T00:00:00');
-  const daysDiff = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysDiff = getDaysUntilEvent(activeEvent.date) ?? 0;
 
   // Count overdue milestones
-  const overdueMilestones = activeEvent.timeline.filter((m) => isMilestoneOverdue(m));
+  const overdueMilestones = useMemo(
+    () => activeEvent.timeline.filter((m) => isMilestoneOverdue(m)),
+    [activeEvent.timeline]
+  );
 
   // Next 4 upcoming milestones
-  const upcomingMilestones = [...activeEvent.timeline]
-    .filter((m) => m.status !== 'completed')
-    .slice(0, 4);
+  const upcomingMilestones = useMemo(
+    () => [...activeEvent.timeline].filter((m) => m.status !== 'completed').slice(0, 4),
+    [activeEvent.timeline]
+  );
 
   // Top pending tasks
-  const pendingTasks = activeEvent.vendorTasks
-    .filter((t) => !t.completed)
-    .slice(0, 4);
+  const pendingTasks = useMemo(
+    () => activeEvent.vendorTasks.filter((t) => !t.completed).slice(0, 4),
+    [activeEvent.vendorTasks]
+  );
 
-  const costPerGuest = activeEvent.guestCount > 0 
-    ? Math.round(budgetSummary.totalEstimated / activeEvent.guestCount) 
-    : 0;
+  const costPerGuest = useMemo(
+    () => (activeEvent.guestCount > 0 ? Math.round(budgetSummary.totalEstimated / activeEvent.guestCount) : 0),
+    [activeEvent.guestCount, budgetSummary.totalEstimated]
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -111,7 +121,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Calendar size={16} color="var(--gold-500)" />
-                {new Date(activeEvent.date + 'T00:00:00').toLocaleDateString(undefined, {
+                {formatEventDate(activeEvent.date, {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -192,103 +202,75 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         gap: '1.25rem'
       }} aria-label="Key Event Metrics">
         {/* Total Estimated Cost */}
-        <div 
-          className="glass-card" 
-          style={{ padding: '1.25rem 1.4rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+        <MetricCard
+          label="Estimated Total Cost"
+          badge={<span className="badge badge-estimate">[ESTIMATE]</span>}
+          value={
+            <span style={{ color: budgetSummary.isOverBudget ? 'var(--danger-text)' : 'var(--text-primary)' }}>
+              ${budgetSummary.totalEstimated.toLocaleString()}
+            </span>
+          }
+          subtext={`Allocated: $${budgetSummary.totalBudget.toLocaleString()} (${budgetSummary.percentageUsed}% used)`}
+          footer={
+            <div className="progress-track" style={{ marginTop: '0.75rem', height: '6px' }}>
+              <div 
+                className="progress-fill" 
+                style={{ 
+                  width: `${Math.min(100, budgetSummary.percentageUsed)}%`,
+                  background: budgetSummary.isOverBudget ? 'var(--danger-text)' : 'var(--primary-500)'
+                }} 
+              />
+            </div>
+          }
           onClick={() => onNavigate('budget')}
           title="Click to view detailed Budget Planner"
-          role="button"
-          tabIndex={0}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Estimated Total Cost</span>
-            <span className="badge badge-estimate">[ESTIMATE]</span>
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: budgetSummary.isOverBudget ? 'var(--danger-text)' : 'var(--text-primary)' }}>
-            ${budgetSummary.totalEstimated.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-            Allocated: ${budgetSummary.totalBudget.toLocaleString()} ({budgetSummary.percentageUsed}% used)
-          </div>
-          <div className="progress-track" style={{ marginTop: '0.75rem', height: '6px' }}>
-            <div 
-              className="progress-fill" 
-              style={{ 
-                width: `${Math.min(100, budgetSummary.percentageUsed)}%`,
-                background: budgetSummary.isOverBudget ? 'var(--danger-text)' : 'var(--primary-500)'
-              }} 
-            />
-          </div>
-        </div>
+        />
 
         {/* Remaining Budget / Deficit */}
-        <div 
-          className="glass-card" 
-          style={{ padding: '1.25rem 1.4rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+        <MetricCard
+          label={budgetSummary.isOverBudget ? 'Budget Deficit' : 'Remaining Budget'}
+          badge={<TrendingUp size={16} color="var(--gold-500)" />}
+          value={
+            <span style={{ color: budgetSummary.remainingBudget < 0 ? 'var(--danger-text)' : 'var(--success-text)' }}>
+              ${budgetSummary.remainingBudget.toLocaleString()}
+            </span>
+          }
+          subtext={`Avg. ~$${costPerGuest}/guest for ${activeEvent.guestCount} guests`}
           onClick={() => onNavigate('budget')}
           title="Click to view detailed Budget Planner"
-          role="button"
-          tabIndex={0}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              {budgetSummary.isOverBudget ? 'Budget Deficit' : 'Remaining Budget'}
-            </span>
-            <TrendingUp size={16} color="var(--gold-500)" />
-          </div>
-          <div style={{ 
-            fontSize: '1.75rem', 
-            fontWeight: 700, 
-            color: budgetSummary.remainingBudget < 0 ? 'var(--danger-text)' : 'var(--success-text)' 
-          }}>
-            ${budgetSummary.remainingBudget.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-            Avg. ~${costPerGuest}/guest for {activeEvent.guestCount} guests
-          </div>
-        </div>
+        />
 
         {/* Confirmed Paid Actuals */}
-        <div 
-          className="glass-card" 
-          style={{ padding: '1.25rem 1.4rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+        <MetricCard
+          label="Confirmed Actual Paid"
+          badge={<Receipt size={16} color="var(--sage-600)" />}
+          value={
+            <span style={{ color: 'var(--sage-700)' }}>
+              ${budgetSummary.totalActual.toLocaleString()}
+            </span>
+          }
+          subtext={`${taskProgress.completed} of ${taskProgress.total} vendor tasks completed (${taskProgress.percentage}%)`}
           onClick={() => onNavigate('vendors')}
           title="Click to view Vendor & Deliverables Checklist"
-          role="button"
-          tabIndex={0}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Confirmed Actual Paid</span>
-            <Receipt size={16} color="var(--sage-600)" />
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--sage-700)' }}>
-            ${budgetSummary.totalActual.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-            {taskProgress.completed} of {taskProgress.total} vendor tasks completed ({taskProgress.percentage}%)
-          </div>
-        </div>
+        />
 
         {/* Timeline Milestones Card */}
-        <div 
-          className="glass-card" 
-          style={{ padding: '1.25rem 1.4rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+        <MetricCard
+          label="Schedule Milestones"
+          badge={<Calendar size={16} color="var(--primary-500)" />}
+          value={
+            <>
+              {activeEvent.timeline.length} <span style={{ fontSize: '0.9rem', fontWeight: 400, color: 'var(--text-muted)' }}>milestones</span>
+            </>
+          }
+          subtext={
+            <span style={{ color: overdueMilestones.length > 0 ? 'var(--danger-text)' : 'var(--text-muted)', fontWeight: overdueMilestones.length > 0 ? 600 : 400 }}>
+              {overdueMilestones.length > 0 ? `⚠️ ${overdueMilestones.length} milestone(s) overdue` : 'All scheduled on track'}
+            </span>
+          }
           onClick={() => onNavigate('timeline')}
           title="Click to view full Event Schedule & Timeline"
-          role="button"
-          tabIndex={0}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Schedule Milestones</span>
-            <Calendar size={16} color="var(--primary-500)" />
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>
-            {activeEvent.timeline.length} <span style={{ fontSize: '0.9rem', fontWeight: 400, color: 'var(--text-muted)' }}>milestones</span>
-          </div>
-          <div style={{ fontSize: '0.8rem', color: overdueMilestones.length > 0 ? 'var(--danger-text)' : 'var(--text-muted)', marginTop: '0.2rem', fontWeight: overdueMilestones.length > 0 ? 600 : 400 }}>
-            {overdueMilestones.length > 0 ? `⚠️ ${overdueMilestones.length} milestone(s) overdue` : 'All scheduled on track'}
-          </div>
-        </div>
+        />
       </section>
 
       {/* C. Spending Overview: Compact Budget Analytics Donut & Comparison */}
