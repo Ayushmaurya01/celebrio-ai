@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import React from 'react';
 import { AppSettings } from '../types';
 import { useModalAccessibility } from '../hooks/useModalAccessibility';
 import { 
   X, 
-  Key, 
-  Cpu, 
   RotateCcw, 
   Check, 
   ShieldCheck, 
-  Sparkles
+  Sparkles,
+  Lock,
+  Zap
 } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -23,29 +23,12 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
-  settings,
-  onSaveSettings,
   onResetData,
   showToast,
 }) => {
   useModalAccessibility(isOpen, onClose);
 
-  const [apiKey, setApiKey] = useState(settings.geminiApiKey || '');
-  const [model, setModel] = useState(settings.model || 'gemini-2.5-flash');
-  const [preferOfflineDemo, setPreferOfflineDemo] = useState(settings.preferOfflineDemo);
-
   if (!isOpen) return null;
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSaveSettings({
-      geminiApiKey: apiKey.trim(),
-      model,
-      preferOfflineDemo,
-    });
-    showToast('Settings saved successfully!', 'success');
-    onClose();
-  };
 
   const handleReset = () => {
     if (window.confirm('Reset all events and restore default sample templates? Custom changes will be reset.')) {
@@ -77,169 +60,111 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSave}>
-          <div className="modal-body">
-            {/* Mode Explanation Notice */}
-            <div style={{
-              padding: '0.9rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-surface-subtle)',
-              border: '1px solid var(--border-medium)',
-              fontSize: '0.84rem',
-              marginBottom: '1.25rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: 'var(--primary-700)', marginBottom: '0.25rem' }}>
-                <ShieldCheck size={16} />
-                <span>Google PromptWars Transparency Guarantee</span>
-              </div>
-              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                Celebrio AI supports two authentic modes: <strong>Deterministic Offline Mode</strong> (complete, personalized event plans without requiring an API key) and <strong>Live Gemini AI</strong>. It never pretends offline responses came from a live model.
-              </p>
+        <div className="modal-body">
+          {/* Architecture & Guarantee Notice */}
+          <div style={{
+            padding: '1rem 1.15rem',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface-subtle)',
+            border: '1px solid var(--border-medium)',
+            fontSize: '0.86rem',
+            marginBottom: '1.25rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 700, color: 'var(--primary-700)', marginBottom: '0.35rem' }}>
+              <ShieldCheck size={18} />
+              <span>100% Deterministic Offline Architecture</span>
             </div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Celebrio AI operates entirely in deterministic offline mode with zero external network dependencies. It provides complete, bespoke event blueprints, menus, and conversational refinement without requiring client-side API keys.
+            </p>
+          </div>
 
-            {/* Offline vs Live Mode Selection */}
-            <div className="form-group">
-              <label className="form-label">Planning AI Mode</label>
-              <div 
-                role="radiogroup" 
-                aria-label="Planning AI Mode"
-                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}
-              >
-                <div 
-                  role="radio"
-                  aria-checked={preferOfflineDemo}
-                  tabIndex={0}
-                  onClick={() => setPreferOfflineDemo(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setPreferOfflineDemo(true);
-                    }
-                  }}
-                  style={{
-                    padding: '0.85rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: `1.5px solid ${preferOfflineDemo ? 'var(--primary-500)' : 'var(--border-subtle)'}`,
-                    background: preferOfflineDemo ? 'var(--primary-50)' : 'var(--bg-surface)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                    <strong style={{ fontSize: '0.88rem', color: preferOfflineDemo ? 'var(--primary-700)' : 'var(--text-primary)' }}>
-                      Deterministic Demo
-                    </strong>
-                    {preferOfflineDemo && <Check size={14} color="var(--primary-500)" />}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Immediate offline execution. Zero API key setup required.
-                  </div>
-                </div>
-
-                <div 
-                  role="radio"
-                  aria-checked={!preferOfflineDemo}
-                  tabIndex={0}
-                  onClick={() => setPreferOfflineDemo(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setPreferOfflineDemo(false);
-                    }
-                  }}
-                  style={{
-                    padding: '0.85rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: `1.5px solid ${!preferOfflineDemo ? 'var(--gold-500)' : 'var(--border-subtle)'}`,
-                    background: !preferOfflineDemo ? 'var(--gold-50)' : 'var(--bg-surface)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                    <strong style={{ fontSize: '0.88rem', color: !preferOfflineDemo ? 'var(--gold-600)' : 'var(--text-primary)' }}>
-                      Live Gemini AI
-                    </strong>
-                    {!preferOfflineDemo && <Check size={14} color="var(--gold-500)" />}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Requires your Google Gemini API key below.
-                  </div>
-                </div>
-              </div>
+          {/* Engine Highlights Card */}
+          <div style={{
+            padding: '1rem',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--primary-50)',
+            border: '1.5px solid var(--primary-100)',
+            marginBottom: '1.25rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+              <strong style={{ fontSize: '0.9rem', color: 'var(--primary-800)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Zap size={15} color="var(--primary-600)" />
+                Deterministic Planning Engine
+              </strong>
+              <span className="badge badge-coral" style={{ fontSize: '0.72rem' }}>
+                Active & Offline
+              </span>
             </div>
-
-            {/* Gemini API Key */}
-            <div className="form-group">
-              <label className="form-label" htmlFor="api-key" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Key size={14} />
-                <span>Google Gemini API Key</span>
-              </label>
-              <input
-                id="api-key"
-                type="password"
-                className="form-input"
-                placeholder="AIzaSy..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <ShieldCheck size={12} color="var(--success-text)" />
-                <span>Stored securely in local browser storage only. Never sent to third-party servers.</span>
-              </div>
-            </div>
-
-            {/* Model Selection */}
-            <div className="form-group">
-              <label className="form-label" htmlFor="model-select" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Cpu size={14} />
-                <span>Gemini Model</span>
-              </label>
-              <select
-                id="model-select"
-                className="form-select"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-              >
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended - Ultra Fast)</option>
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
-              </select>
-            </div>
-
-            {/* Reset Sample Data */}
-            <div style={{
-              marginTop: '1.5rem',
-              paddingTop: '1rem',
-              borderTop: '1px solid var(--border-subtle)',
+            
+            <ul style={{ 
+              margin: 0, 
+              paddingLeft: '1.2rem', 
+              fontSize: '0.8rem', 
+              color: 'var(--text-secondary)',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
+              gap: '0.35rem'
             }}>
-              <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Reset Sample Events</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Restore pre-loaded Wedding, Birthday & Gala templates
-                </div>
-              </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={handleReset}
-              >
-                <RotateCcw size={14} />
-                <span>Reset Demo Data</span>
-              </button>
+              <li>Immediate algorithmic generation for theme titles, color swatches, culinary menus, and decor.</li>
+              <li>Interactive concierge chat providing contextual replies and actionable 1-click event modifications.</li>
+              <li>Strict mathematical accuracy for itemized budgets, estimate calculations, and deficit alerts.</li>
+            </ul>
+          </div>
+
+          {/* Privacy & Security Guarantee */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.6rem',
+            padding: '0.85rem 1rem',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            fontSize: '0.8rem',
+            color: 'var(--text-secondary)'
+          }}>
+            <Lock size={16} color="var(--primary-600)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.2rem' }}>
+                Client-Side Privacy Guarantee
+              </strong>
+              All event plans, budgets, vendor contracts, and personal guest notes are stored exclusively in your local browser storage (<code style={{ fontSize: '0.75rem' }}>localStorage</code>). No data or credentials are ever transmitted over external networks.
             </div>
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Save Settings
+          {/* Reset Sample Data */}
+          <div style={{
+            marginTop: '1.5rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Reset Sample Events</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Restore pre-loaded Wedding, Birthday & Gala templates
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleReset}
+            >
+              <RotateCcw size={14} />
+              <span>Reset Demo Data</span>
             </button>
           </div>
-        </form>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" className="btn btn-primary" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Check size={16} />
+            <span>Done</span>
+          </button>
+        </div>
       </div>
     </div>
   );

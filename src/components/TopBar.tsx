@@ -30,10 +30,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   onOpenSettingsModal,
   onToggleSidebar,
   onNavigate,
-  settings,
 }) => {
   const daysUntil = activeEvent ? getDaysUntilEvent(activeEvent.date) : null;
-  const isLiveAI = Boolean(settings.geminiApiKey && !settings.preferOfflineDemo);
 
   return (
     <header className="topbar" role="banner">
@@ -120,15 +118,15 @@ export const TopBar: React.FC<TopBarProps> = ({
             fontSize: '0.78rem',
             padding: '0.3rem 0.65rem',
             borderRadius: 'var(--radius-full)',
-            background: isLiveAI ? 'var(--gold-100)' : 'var(--primary-50)',
-            color: isLiveAI ? 'var(--gold-600)' : 'var(--primary-700)',
-            border: `1px solid ${isLiveAI ? 'var(--gold-500)' : 'var(--primary-100)'}`,
+            background: 'var(--primary-50)',
+            color: 'var(--primary-700)',
+            border: '1px solid var(--primary-100)',
             fontWeight: 600,
           }}
-          title="Click to configure Gemini API or switch modes"
+          title="Celebrio AI: 100% Deterministic Offline Mode"
         >
           <Sparkles size={13} />
-          <span>{isLiveAI ? 'Live Gemini AI' : 'Deterministic Demo Mode'}</span>
+          <span>Deterministic Offline Engine</span>
         </div>
 
         <button 

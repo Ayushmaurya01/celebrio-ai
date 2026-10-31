@@ -26,9 +26,7 @@ export interface ToastItem {
 export type ShowToastFn = (message: string, type?: ToastType) => void;
 
 export interface AppSettings {
-  geminiApiKey: string;
-  model: string;
-  preferOfflineDemo: boolean;
+  engineMode: 'deterministic_offline';
 }
 
 /* ==========================================================================
@@ -240,8 +238,7 @@ export interface AIPlan {
 }
 
 export interface PlanGenerationOptions {
-  apiKey?: string;
-  model?: string;
+  note?: string;
   forceOffline?: boolean;
 }
 

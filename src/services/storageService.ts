@@ -8,16 +8,14 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
-  geminiApiKey: '',
-  model: 'gemini-2.5-flash',
-  preferOfflineDemo: true, // Defaults to deterministic offline demo mode for zero-setup out of box
+  engineMode: 'deterministic_offline',
 };
 
 export function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    return { ...DEFAULT_SETTINGS };
   } catch (e: unknown) {
     console.error('Failed to load settings from localStorage:', e);
     return DEFAULT_SETTINGS;

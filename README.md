@@ -1,7 +1,7 @@
 # Celebrio AI — Celebration & Event Planner
 **Google PromptWars Challenge 5 Edition**
 
-> An elegant, GenAI-powered celebration and event planning architect designed to organize weddings, milestone birthdays, and community festivals with deterministic budgets, chronological schedules, vendor directories, and personalized creative styling.
+> An elegant celebration and event planning architect designed to organize weddings, milestone birthdays, and community festivals with deterministic offline intelligence, reactive budgets, chronological schedules, vendor directories, and personalized creative styling.
 
 ---
 
@@ -10,7 +10,7 @@
 Event planning involves intricate choreography across aesthetic vision, tight financial constraints, volatile vendor coordination, and strict date sequences. **Celebrio AI** provides a complete, unified planning system featuring:
 
 1. **Personalized Event Creation**: Tailored workflows for Weddings, Birthdays, Community Galas, Anniversaries, and Baby Showers with validated budgets, guest counts, and dates.
-2. **AI Planning Assistant**: Full bespoke design blueprints (themes, harmonious color swatches, decor concepts, culinary & bar architecture, entertainment progression, practical tips) paired with a conversational refinement chat concierge.
+2. **Deterministic AI Blueprint & Assistant**: Bespoke design blueprints (themes, harmonious color swatches, decor concepts, culinary & bar architecture, entertainment progression, practical tips) paired with an interactive refinement chat concierge with one-click actionable triggers.
 3. **Deterministic Financial Engine**: Itemized category breakdowns (Venue, Catering, Decor, Music, Photo, Attire, Stationery, Buffer) with immediate reactivity, explicit `[ESTIMATE]` tagging, and prominent over-budget warnings with exact deficit amounts.
 4. **Chronological Timeline & Day-of Schedule**: Preparation milestone countdowns, overdue milestone alerts, sequence validation (warning if preparation tasks occur after event date), and hour-by-hour day-of agenda run-sheets.
 5. **Vendor Directory & Task Checklist**: Contact details, phone/email, contract notes, booking statuses (`inquiry`, `quote_received`, `booked`, `deposit_paid`, `completed`), committed spend tracking, and celebration confetti upon completion.
@@ -28,29 +28,29 @@ Event planning involves intricate choreography across aesthetic vision, tight fi
 
 ---
 
-## 🚀 Live vs. Deterministic Demo Mode (Transparency Guarantee)
+## 🏛️ 100% Deterministic Offline Architecture & Reliability
 
-Celebrio AI provides two authentic modes:
+Celebrio AI operates **entirely in deterministic offline mode**. This architecture was selected to guarantee maximum reliability, privacy, and speed:
 
-| Feature | Deterministic Offline Mode | Live Gemini AI Mode |
-| :--- | :--- | :--- |
-| **Setup** | Zero setup required (works out of the box) | Requires Google Gemini API Key |
-| **Event Blueprint** | Rich, algorithmic styling and menu recommendations | Generative multimodal reasoning via `gemini-2.5-flash` |
-| **Conversational Chat** | Keyword-sensitive assistant with actionable quick buttons | Contextual multi-turn event concierge |
-| **Transparency** | Clearly labeled `[Deterministic Offline AI Planner]` | Clearly labeled `[Live Gemini AI (model_name)]` |
-
-*Celebrio AI strictly complies with the PromptWars rule: it never pretends a mock or deterministic response came from a live AI model.*
+| Architectural Advantage | Description |
+| :--- | :--- |
+| **Zero External Network Dependencies** | Operates with zero network calls, eliminating external API outages, rate limits, and latency spikes. |
+| **Zero API Key Requirement** | Ready to evaluate immediately out of the box with no configuration or secret management needed. |
+| **Algorithmic Planning Engine** | Bespoke theme curation, hex-accurate color palette generation, culinary & bar structuring, and logistical recommendations tailored to event type, guest count, and budget. |
+| **Contextual Concierge Chat** | Keyword-sensitive assistant providing tailored advice with one-click interactive action buttons that directly inject budget items, vendor tasks, or milestones. |
+| **Client-Side Privacy Guarantee** | All celebration data, guest lists, and budgets reside exclusively in the user's browser `localStorage` and are never transmitted to third-party servers. |
+| **Authenticity & Transparency** | Clearly communicates its deterministic offline engine. Never claims to connect to a live GenAI cloud service. |
 
 ---
 
 ## 💻 Tech Stack
 
-- **Framework**: React 19 + TypeScript
+- **Framework**: React 19 + TypeScript (Strict Mode with `noUnusedLocals` and `noUnusedParameters`)
 - **Build Tool**: Vite 8
 - **Styling**: Pure Vanilla CSS with Design Tokens & CSS Custom Properties (Zero Tailwind bloat)
 - **Icons**: Lucide React
 - **Celebrations**: Canvas Confetti
-- **Testing**: Vitest + JSDOM + Testing Library
+- **Testing**: Vitest + JSDOM + Testing Library (49 tests across 7 test suites)
 
 ---
 
@@ -70,18 +70,8 @@ cd C5
 npm install
 ```
 
-### 3. Environment Configuration (Optional)
-To use live Google Gemini AI, copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Add your Gemini API key:
-```env
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-```
-*(Alternatively, you can paste your API key directly inside the in-app Settings modal. The key is persisted strictly in local browser storage and never transmitted to external servers.)*
-
-### 4. Running Locally
+### 3. Running Locally
+Celebrio AI requires **zero environment setup or API keys**:
 ```bash
 npm run dev
 ```
@@ -91,17 +81,20 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 🧪 Testing
 
-Automated tests cover all critical logic:
+Comprehensive unit and integration test suites cover all algorithmic, validation, and interaction logic:
 ```bash
-# Run test suite
+# Run the automated test suite
 npm test
 ```
 
 ### Test Coverage Highlights:
-- **`budgetService.test.ts`**: Total budget calculation, category allocation percentages, over-budget detection, deficit math, and initial estimate generation.
+- **`aiPlannerService.test.ts`**: Deterministic plan generation, required section assertions, color palette integrity, model labeling, and conversational interactive action triggers.
+- **`budgetService.test.ts`**: Total budget calculation, category allocation percentages, over-budget detection, deficit math, immutable sorting, and initial estimate generation.
 - **`validationService.test.ts`**: Event form validation, past date rejection, negative/zero budget validation, guest count boundaries, and timeline date sequence checks.
 - **`timelineService.test.ts`**: Chronological sorting, day-of agenda timing, overdue status detection, and sequence warnings.
-- **`aiPlannerService.test.ts`**: Deterministic plan generation, required section assertions, color palette integrity, and conversational interactive action triggers.
+- **`dateUtils.test.ts`**: Date subtraction, calendar boundary logic, leap years, days-until countdowns, formatting, and validity checks.
+- **`idUtils.test.ts`**: Collision resistance, prefixing, timestamp monotonicity, and uniqueness.
+- **`useModalAccessibility.test.ts`**: Escape key listening, modal open/close transitions, and event cleanup.
 
 ---
 
@@ -131,10 +124,10 @@ The compiled static assets in `dist/` can be deployed instantly to:
 | :--- | :--- | :--- |
 | **Personalized Event Creation** | ✅ 100% Functional | Validates dates, budget > 0, guest counts, and required fields. |
 | **Deterministic AI Blueprint** | ✅ 100% Functional | Custom color palettes, decor, catering, entertainment, and logistics. |
-| **Live Gemini AI Integration** | ✅ 100% Functional | Enabled when API key is provided via `.env` or Settings modal. |
-| **Conversational Chat Assistant** | ✅ 100% Functional | Multi-turn chat with 1-click action buttons (e.g. "Add to Budget"). |
+| **Deterministic Chat Assistant** | ✅ 100% Functional | Context-aware event refinement chat with 1-click action buttons (e.g. "Add to Budget"). |
+| **Deterministic Offline Engine** | ✅ 100% Functional | 100% client-side execution, zero external network dependencies, zero API keys required. |
 | **Reactive Budget Planner** | ✅ 100% Functional | Real-time calculations, category bars, estimates tags, over-budget alerts. |
 | **Timeline & Day-of Schedule** | ✅ 100% Functional | Overdue warnings, sequence checks, status cycles, hourly run-sheets. |
 | **Vendor Directory & Tasks** | ✅ 100% Functional | Contacts, booking statuses, committed spend, confetti completion. |
 | **Saved Plans Portfolio** | ✅ 100% Functional | LocalStorage persistence, duplication, JSON import/export, sample restore. |
-| **Automated Unit Tests** | ✅ 17/17 Tests Passing | Tested with Vitest. |
+| **Automated Unit Tests** | ✅ 49/49 Tests Passing | 7 test suites running on Vitest. |
